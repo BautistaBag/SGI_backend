@@ -111,3 +111,16 @@ class ProductoResponse(SQLModel):
     stock_minimo: int
     categoria_id: int
     activo: bool
+
+
+class ProductoResponseWithCategoria(SQLModel):
+    """Schema de respuesta para producto con información de categoría incluida"""
+    id: int
+    codigo: str
+    nombre: str
+    descripcion: Optional[str] = None
+    precio: Decimal
+    stock_actual: int
+    stock_minimo: int
+    activo: bool
+    categoria: dict  # Información de la categoría (id, nombre, descripcion, activa)

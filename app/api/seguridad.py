@@ -4,7 +4,7 @@ Validación de JWT, roles y permisos en los endpoints
 """
 from typing import Optional
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import Session
 from app.models.usuario import TokenData, Usuario
 from app.core.database import get_session
@@ -17,7 +17,7 @@ security = HTTPBearer()
 
 
 async def obtener_usuario_actual(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
 ) -> TokenData:
     """

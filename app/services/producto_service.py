@@ -130,6 +130,53 @@ class ProductoService:
         """Obtiene productos de una categoría."""
         return self.producto_repo.get_by_categoria(categoria_id, skip=skip, limit=limit)
     
+    def obtener_productos_con_categoria(
+        self, 
+        categoria_nombre: Optional[str] = None,
+        skip: int = 0, 
+        limit: int = 20
+    ) -> List[dict]:
+        """
+        Obtiene productos con información de categoría.
+        Opcionalmente filtra por nombre de categoría (case-insensitive).
+        
+        Args:
+            categoria_nombre: Nombre de la categoría para filtrar (opcional)
+            skip: Número de registros a saltar
+            limit: Número máximo de registros
+            
+        Returns:
+            List[dict]: Lista de productos con información de categoría anidada
+        """
+        resultados = self.producto_repo.get_with_categoria(
+            categoria_nombre=categoria_nombre,
+            skip=skip,
+            limit=limit
+        )
+        
+        # Transformar resultados a formato que incluya categoría
+        productos_con_categoria = []
+        for producto, categoria in resultados:
+            producto_dict = {
+                "id": producto.id,
+                "codigo": producto.codigo,
+                "nombre": producto.nombre,
+                "descripcion": producto.descripcion,
+                "precio": float(producto.precio),
+                "stock_actual": producto.stock_actual,
+                "stock_minimo": producto.stock_minimo,
+                "activo": producto.activo,
+                "categoria": {
+                    "id": categoria.id,
+                    "nombre": categoria.nombre,
+                    "descripcion": categoria.descripcion,
+                    "activa": categoria.activa
+                }
+            }
+            productos_con_categoria.append(producto_dict)
+        
+        return productos_con_categoria
+    
     def eliminar_producto(self, producto_id: int) -> bool:
         """
         Elimina un producto (o lo marca como inactivo).

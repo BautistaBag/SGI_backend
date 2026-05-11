@@ -3,6 +3,7 @@ Rutas de API
 Define todos los endpoints HTTP de la aplicación
 Estructura: GET, POST, PUT, DELETE para cada recurso
 """
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 from app.core.database import get_session
@@ -53,20 +54,53 @@ def obtener_producto(
     return producto
 
 
-@router.get("/productos", response_model=list[ProductoResponse], tags=["Productos"])
+@router.get("/productos", response_model=list[dict], tags=["Productos"])
 def listar_productos(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    categoria: Optional[str] = Query(None, description="Filtrar por nombre de categoría (búsqueda parcial, case-insensitive)"),
     session: Session = Depends(get_session)
 ):
     """
-    Lista todos los productos con paginación.
+    Lista todos los productos con información de categoría y paginación.
     
-    - skip: número de registros a saltar
-    - limit: número máximo de registros (máx 100)
+    **Parámetros:**
+    - skip: número de registros a saltar (default: 0)
+    - limit: número máximo de registros (default: 20, máx: 100)
+    - categoria: filtrar por nombre de categoría (opcional, búsqueda parcial case-insensitive)
+    
+    **Respuesta:**
+    Retorna una lista de productos con estructura:
+    ```json
+    {
+        "id": 1,
+        "codigo": "PROD001",
+        "nombre": "Producto 1",
+        "descripcion": "Descripción del producto",
+        "precio": 99.99,
+        "stock_actual": 50,
+        "stock_minimo": 10,
+        "activo": true,
+        "categoria": {
+            "id": 1,
+            "nombre": "Electronica",
+            "descripcion": "Categoría de electrónica",
+            "activa": true
+        }
+    }
+    ```
+    
+    **Ejemplos:**
+    - `/api/productos` - Todos los productos con su categoría
+    - `/api/productos?categoria=electronica` - Solo productos de electrónica
+    - `/api/productos?skip=20&limit=10` - Paginación
     """
     servicio = ProductoService(session)
-    return servicio.obtener_todos_productos(skip=skip, limit=limit)
+    return servicio.obtener_productos_con_categoria(
+        categoria_nombre=categoria,
+        skip=skip,
+        limit=limit
+    )
 
 
 @router.get("/productos/stock/bajo", response_model=list[ProductoResponse], tags=["Productos"])

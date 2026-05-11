@@ -3,8 +3,9 @@ Repositorio de Producto
 Contiene consultas específicas para la tabla 'producto'
 """
 from typing import Optional, List
-from sqlmodel import Session, select
+from sqlmodel import Session, select, join
 from app.models.producto import Producto
+from app.models.categoria import Categoria
 from app.repositories.base_repository import BaseRepository
 
 
@@ -134,3 +135,36 @@ class ProductoRepository(BaseRepository[Producto]):
         producto.stock_actual += cantidad
         self.session.add(producto)
         return producto
+    
+    def get_with_categoria(
+        self, 
+        categoria_nombre: Optional[str] = None,
+        skip: int = 0, 
+        limit: int = 100
+    ) -> List[tuple]:
+        """
+        Obtiene productos con información de categoría, opcionalmente filtrado por nombre de categoría.
+        
+        Retorna una lista de tuplas (Producto, Categoria) para permitir acceso a ambas entidades
+        con la información de categoría incluida.
+        
+        Args:
+            categoria_nombre: Nombre de la categoría para filtrar (case-insensitive, opcional)
+            skip: Número de registros a saltar
+            limit: Número máximo de registros
+            
+        Returns:
+            List[tuple]: Lista de tuplas (Producto, Categoria)
+        """
+        statement = select(Producto, Categoria).join(
+            Categoria, Producto.categoria_id == Categoria.id
+        ).where(Producto.activo == True)
+        
+        # Si se proporciona nombre de categoría, filtrar por él (case-insensitive)
+        if categoria_nombre:
+            statement = statement.where(
+                Categoria.nombre.ilike(f"%{categoria_nombre}%")
+            )
+        
+        statement = statement.offset(skip).limit(limit)
+        return self.session.exec(statement).all()

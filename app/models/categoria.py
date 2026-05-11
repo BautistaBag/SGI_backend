@@ -58,3 +58,11 @@ class CategoriaUpdate(SQLModel):
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
     activa: Optional[bool] = None
+
+
+class CategoriaResponse(SQLModel):
+    """Schema de respuesta para categoría"""
+    id: int
+    nombre: str
+    descripcion: Optional[str] = None
+    activa: bool
