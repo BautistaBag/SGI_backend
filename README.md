@@ -1,5 +1,5 @@
 # Sistema de Gestión de Inventario (SGI) - Backend
-
+📄 **Informe Técnico:** Podés leer el diseño del modelo y las estrategias de escalabilidad aquí: [Ver Informe PDF](./Informe_SGI.pdf)
 ## 📋 Descripción General
 
 Backend del Sistema de Gestión de Inventario construido con **FastAPI** y **SQLModel**, implementando arquitectura por capas con separación clara de responsabilidades: rutas, servicios, repositorios y modelos.
