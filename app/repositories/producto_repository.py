@@ -115,6 +115,7 @@ class ProductoRepository(BaseRepository[Producto]):
         
         producto.stock_actual -= cantidad
         self.session.add(producto)
+        self.session.flush()  # Asegurar que la actualización se persista en la BD
         return producto
     
     def sumar_stock(self, producto_id: int, cantidad: int) -> Optional[Producto]:

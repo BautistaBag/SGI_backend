@@ -164,3 +164,37 @@ class MovimientoService:
         return self.movimiento_repo.get_by_fecha_rango(
             fecha_inicio, fecha_fin, skip=skip, limit=limit
         )
+    
+    def registrar_movimiento(
+        self,
+        tipo: str,
+        producto_id: int,
+        cantidad: int,
+        motivo: Optional[str] = None,
+        usuario_id: Optional[int] = None
+    ) -> Movimiento:
+        """
+        Registra un movimiento genérico (ENTRADA o SALIDA).
+        Usa el tipo para decidir qué operación hacer.
+        
+        Args:
+            tipo: "ENTRADA" o "SALIDA"
+            producto_id: ID del producto
+            cantidad: Cantidad a mover
+            motivo: Motivo del movimiento
+            usuario_id: ID del usuario
+            
+        Returns:
+            Movimiento: Movimiento registrado
+            
+        Raises:
+            ValueError: Si tipo no es válido o hay validación fallida
+        """
+        tipo = tipo.upper()
+        
+        if tipo == "ENTRADA":
+            return self.registrar_entrada(producto_id, cantidad, motivo, usuario_id)
+        elif tipo == "SALIDA":
+            return self.registrar_salida(producto_id, cantidad, motivo, usuario_id)
+        else:
+            raise ValueError(f"Tipo de movimiento no válido: {tipo}. Use ENTRADA o SALIDA")

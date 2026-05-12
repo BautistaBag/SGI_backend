@@ -9,7 +9,7 @@ from sqlmodel import Session
 from app.core.database import get_session
 from app.models.producto import Producto, ProductoCreate, ProductoUpdate, ProductoResponse
 from app.models.categoria import Categoria, CategoriaCreate, CategoriaUpdate
-from app.models.movimiento import Movimiento, MovimientoResponse
+from app.models.movimiento import Movimiento, MovimientoCreate, MovimientoResponse
 from app.services.producto_service import ProductoService
 from app.services.categoria_service import CategoriaService
 from app.services.movimiento_service import MovimientoService
@@ -214,12 +214,35 @@ def eliminar_categoria(
 # MOVIMIENTOS - Salidas y Entradas de Inventario
 # ============================================================================
 
+@router.post("/movimientos", response_model=MovimientoResponse, tags=["Movimientos"])
+def registrar_movimiento(
+    movimiento_data: MovimientoCreate,
+    session: Session = Depends(get_session)
+):
+    """
+    Registra un movimiento de inventario (ENTRADA o SALIDA).
+    
+    El tipo debe ser "ENTRADA" (suma stock) o "SALIDA" (resta stock).
+    
+    ⚠️ OPERACIÓN CRÍTICA: Se valida que no haya stock negativo en salidas.
+    """
+    try:
+        servicio = MovimientoService(session)
+        movimiento = servicio.registrar_movimiento(
+            tipo=movimiento_data.tipo,
+            producto_id=movimiento_data.producto_id,
+            cantidad=movimiento_data.cantidad,
+            motivo=movimiento_data.motivo,
+            usuario_id=movimiento_data.usuario_id
+        )
+        return movimiento
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.post("/movimientos/salida", response_model=MovimientoResponse, tags=["Movimientos"])
 def registrar_salida(
-    producto_id: int,
-    cantidad: int,
-    motivo: str = None,
-    usuario_id: int = None,
+    movimiento_data: MovimientoCreate,
     session: Session = Depends(get_session)
 ):
     """
@@ -230,10 +253,10 @@ def registrar_salida(
     try:
         servicio = MovimientoService(session)
         movimiento = servicio.registrar_salida(
-            producto_id=producto_id,
-            cantidad=cantidad,
-            motivo=motivo,
-            usuario_id=usuario_id
+            producto_id=movimiento_data.producto_id,
+            cantidad=movimiento_data.cantidad,
+            motivo=movimiento_data.motivo,
+            usuario_id=movimiento_data.usuario_id
         )
         return movimiento
     except ValueError as e:
@@ -242,10 +265,7 @@ def registrar_salida(
 
 @router.post("/movimientos/entrada", response_model=MovimientoResponse, tags=["Movimientos"])
 def registrar_entrada(
-    producto_id: int,
-    cantidad: int,
-    motivo: str = None,
-    usuario_id: int = None,
+    movimiento_data: MovimientoCreate,
     session: Session = Depends(get_session)
 ):
     """
@@ -254,10 +274,10 @@ def registrar_entrada(
     try:
         servicio = MovimientoService(session)
         movimiento = servicio.registrar_entrada(
-            producto_id=producto_id,
-            cantidad=cantidad,
-            motivo=motivo,
-            usuario_id=usuario_id
+            producto_id=movimiento_data.producto_id,
+            cantidad=movimiento_data.cantidad,
+            motivo=movimiento_data.motivo,
+            usuario_id=movimiento_data.usuario_id
         )
         return movimiento
     except ValueError as e:
